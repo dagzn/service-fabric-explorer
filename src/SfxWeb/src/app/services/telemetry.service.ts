@@ -32,7 +32,7 @@ export class TelemetryService {
       isCookieUseDisabled: true,
       disableAjaxTracking: true,
       disableFetchTracking : true,
-      disableTelemetry: !this.telemetryEnabled
+      disableTelemetry: !this.telemetryEnabled && !!environment.telemetryKey
       /* ...Other Configuration Options... */
     } });
 
@@ -47,7 +47,7 @@ export class TelemetryService {
         if(event instanceof NavigationEnd){
           try {
             const name = lastActivationEnd.snapshot.routeConfig.path;
-            console.log(lastActivationEnd.snapshot.routeConfig.path);
+            console.log(lastActivationEnd);
             this.trackPageEvent(name);
           }catch {
 
