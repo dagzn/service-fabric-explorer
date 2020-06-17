@@ -6,8 +6,7 @@ export const environment = {
   production: false,
   baseUrl: "api",
   version: "test",
-  assetBase: "",
-  telemetryKey: ""
+  assetBase: ""
 };
 
 /*

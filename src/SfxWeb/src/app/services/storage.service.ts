@@ -1,13 +1,11 @@
 import { Injectable } from '@angular/core';
-import { Observable } from '../Common/Observable';
 
 @Injectable({
   providedIn: 'root'
 })
-export class StorageService extends Observable {
+export class StorageService {
 
   constructor(){
-    super();
   }
 
   public getValueNumber(key: string, defaultValue: number): number {
@@ -24,7 +22,7 @@ export class StorageService extends Observable {
 
   public getValueT<T>(key: string, convert: (item) => T, defaultValue: T): T {
       let value = localStorage.getItem(key);
-      if (value) {
+      if (value !== null) {
           return convert(value);
       }
       return defaultValue;
@@ -44,7 +42,6 @@ export class StorageService extends Observable {
       let oldValue = localStorage.getItem(key) || "";
       if (oldValue !== newValue.toString()) {
           localStorage.setItem(key, newValue.toString());
-          this.notify(key, oldValue, newValue.toString());
       }
   }
 }

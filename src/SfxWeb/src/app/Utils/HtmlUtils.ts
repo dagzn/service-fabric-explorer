@@ -150,10 +150,9 @@ export class HtmlUtils {
         return `<div class="badge-container" title="${badge.text}"><img class="badge-icon" src="${environment.assetBase}assets/${badge.badgeClass}.svg" alt="${badge.text} badge"></img><span> ${badge.text}</span></div>`;
     }
 
-    // public static getBadgeOnlyHtml(badge: ITextAndBadge): string {
-    //     return `<div class="badge-container" title="${badge.text}"><img class="badge-icon" src="assets/${badge.badgeClass}.svg"></img></div>`;
-    // }
-
+    public static getLinkOutHtml(text: string, url: string, targetBlank: boolean = false): string {
+        return `<a href="${url}" ${targetBlank ? ` target="_blank"` : ""}>${text}</a>`;
+    }
 
     public static parseReplicaAddress(address: string): any {
         if (!address) {
@@ -162,11 +161,11 @@ export class HtmlUtils {
         return address.indexOf("{") === 0
             ? JSON.parse(address, (key: any, value: any) => {
                 if (typeof value === 'string' && Utils.isSingleURL(value)) {
-                    return HtmlUtils.getLinkHtml(value, value, true);
+                    return HtmlUtils.getLinkOutHtml(value, value, true);
                 }
                 return value;
             })
-            : (Utils.isSingleURL(address) ? HtmlUtils.getLinkHtml(address, address) : address);
+            : (Utils.isSingleURL(address) ? HtmlUtils.getLinkOutHtml(address, address) : address);
     }
 
 }

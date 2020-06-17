@@ -11,7 +11,7 @@ import { IRawCollection, IRawClusterManifest, IRawClusterHealth, IRawClusterUpgr
          IRawDeployedReplica, IRawServiceType, IRawDeployedCodePackage, IRawContainerLogs, IRawDeployedReplicaDetail, IRawApplicationType, IRawApplicationManifest, 
          IRawApplication, IRawService, IRawCreateServiceDescription, IRawCreateServiceFromTemplateDescription, IRawUpdateServiceDescription, IRawServiceDescription, 
          IRawServiceHealth, IRawApplicationUpgradeProgress, IRawCreateComposeDeploymentDescription, IRawPartition, IRawPartitionHealth, IRawPartitionLoadInformation, 
-         IRawReplicaOnPartition, IRawReplicaHealth, IRawImageStoreContent, IRawStoreFolderSize, IRawClusterVersion, IRawList, IRawAadMetadataMetadata, IRawAadMetadata, IRawStorage } from '../Models/RawDataTypes';
+         IRawReplicaOnPartition, IRawReplicaHealth, IRawImageStoreContent, IRawStoreFolderSize, IRawClusterVersion, IRawList, IRawAadMetadataMetadata, IRawAadMetadata, IRawStorage, IRawRepairTask } from '../Models/RawDataTypes';
 import { mergeMap, map, catchError } from 'rxjs/operators';
 import { Application } from '../Models/DataModels/Application';
 import { Service } from '../Models/DataModels/Service';
@@ -43,7 +43,6 @@ export class RestClientService {
   constructor(private httpClient: HttpClient, private message: MessageService) {
       this.registerRequestEndedCallback(requestCount => {
           if (requestCount === 0) {
-              //$.each(this.allRequestsComplete, (_, cb) => cb());
               this.allRequestsComplete = [];
           }
       });
@@ -748,6 +747,12 @@ export class RestClientService {
       return this.getEvents(FabricEvent, url, null, null, messageHandler);
   }
 
+  public getRepairTasks(messageHandler?: IResponseMessageHandler): Observable<IRawRepairTask[]> {
+        let url = `$/GetRepairTaskList`; //additional filters available but not in use. keeping here incase they are needed ?StateFilter=${stateFilter}&TaskIdFilter=${taskIdFilter}&ExecutorFilter=${ExecutorFilter}
+
+        return this.get(this.getApiUrl(url, RestClientService.apiVersion60), "Get repair tasks", messageHandler);
+    }
+
   public restartReplica(nodeName: string, partitionId: string, replicaId: string, messageHandler?: IResponseMessageHandler): Observable<{}> {
       let url = `Nodes/${nodeName}/$/GetPartitions/${partitionId}/$/GetReplicas/${replicaId}/$/Restart`;
 
@@ -858,18 +863,22 @@ export class RestClientService {
 
   private handleResponse<T>(apiDesc: string, resultPromise: Observable<any>, messageHandler?: IResponseMessageHandler): Observable<T> {
     return resultPromise.pipe(catchError((err: HttpErrorResponse) => {
+        const header = `${err.status.toString()} : ${apiDesc}`;
+        console.log(err);
+
         let message = messageHandler.getErrorMessage(apiDesc, err);
             if (message) {
-                this.message.showMessage(message, MessageSeverity.Err);
+                this.message.showMessage(message, MessageSeverity.Err, header);
             }
     
         if (err.error instanceof Error) {
-        // A client-side or network error occurred. Handle it accordingly.
-        console.error('An error occurred:', err.error.message);
+            // A client-side or network error occurred. Handle it accordingly.
+        this.message.showMessage(err.error.message, MessageSeverity.Err, header);
+
         } else {
-        // The backend returned an unsuccessful response code.
-        // The response body may contain clues as to what went wrong,
-        console.error(`Backend returned code ${err.status}, body was: ${err.error}`);
+            // The backend returned an unsuccessful response code.
+            // The response body may contain clues as to what went wrong,
+            this.message.showMessage(err.message, MessageSeverity.Err, header);
         }
     
         // ...optionally return a default fallback value so app can continue (pick one)

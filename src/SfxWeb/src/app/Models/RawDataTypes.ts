@@ -128,6 +128,25 @@ import { Node } from './DataModels/Node';
         UpgradeDomainTimeoutInMilliseconds: string;
     }
 
+    export interface IRawClusterHealthPolicy {
+        ConsiderWarningAsError: boolean;
+        MaxPercentUnhealthyNodes: number;
+        MaxPercentUnhealthyApplications: number;
+    }
+
+    export interface IRawClusterUpgradeDescription {
+        CodeVersion: string;
+        ConfigVersion: string;
+        UpgradeKind: string;
+        RollingUpgradeMode: string;
+        UpgradeReplicaSetCheckTimeoutInSeconds: number;
+        ForceRestart: boolean;
+        MonitoringPolicy: IRawMonitoringPolicy;
+        ClusterHealthPolicy: IRawClusterHealthPolicy;
+        EnableDeltaHealthEvaluation: boolean;
+        SortOrder: string;
+    }
+
     export interface IRawUpgradeDescription {
         Name: string;
         TargetApplicationTypeVersion: string;
@@ -202,7 +221,7 @@ import { Node } from './DataModels/Node';
         UpgradeState: string;
         NextUpgradeDomain: string;
         RollingUpgradeMode: string;
-        UpgradeDescription: IRawUpgradeDescription;
+        UpgradeDescription: IRawClusterUpgradeDescription;
         UpgradeDurationInMilliseconds: string;
         UpgradeDomainDurationInMilliseconds: string;
         UnhealthyEvaluations: IRawUnhealthyEvaluation[];
@@ -518,7 +537,7 @@ import { Node } from './DataModels/Node';
         QueueMemorySize: boolean;
         FirstSequenceNumber: string;
         CompletedSequenceNumber: string;
-        CommmittedSequenceNumber: string;
+        CommittedSequenceNumber: string;
         LastSequenceNumber: string;
     }
 
@@ -530,6 +549,19 @@ import { Node } from './DataModels/Node';
         LastAppliedReplicationSequenceNumber: string;
         LastReceivedCopySequenceNumber: string;
         LastAppliedCopySequenceNumber: string;
+        RemoteReplicatorAcknowledgementStatus: IRemoteReplicatorAcknowledgementStatus;
+    }
+
+    export interface IRemoteReplicatorAcknowledgementStatus {
+        ReplicationStreamAcknowledgementDetail: IRemoteReplicatorAcknowledgementDetail;
+        CopyStreamAcknowledgementDetail: IRemoteReplicatorAcknowledgementDetail;
+    }
+
+    export interface IRemoteReplicatorAcknowledgementDetail {
+        AverageReceiveDuration: string;
+        AverageApplyDuration: string;
+        NotReceivedCount: string;
+        ReceivedAndNotAppliedCount: string;
     }
 
     export interface IRawReplicaOnPartition {
@@ -819,6 +851,58 @@ import { Node } from './DataModels/Node';
     export interface IRawClusterVersion {
         Version: string;
     }
+
+    export interface IRawNodeImpact {
+        NodeName : string;
+        ImpactLevel	?: number;
+    }
+
+    export interface IRawNodeRepairImpactDescription {
+        Kind : string;
+        NodeImpactList : IRawNodeImpact[]
+    }
+
+    export interface IRawNodeRepairTargetDescription {
+        Kind : string;
+        NodeNames : string[]
+    }
+    export interface IRawRepairTaskHistory {
+        CreatedUtcTimestamp ?: string;
+        ClaimedUtcTimestamp ?: string;
+        PreparingUtcTimestamp ?: string; 
+        ApprovedUtcTimestamp ?: string;
+        ExecutingUtcTimestamp ?: string;
+        RestoringUtcTimestamp ?: string;
+        CompletedUtcTimestamp ?: string;
+        PreparingHealthCheckStartUtcTimestamp ?: string;
+        PreparingHealthCheckEndUtcTimestamp ?: string;
+        RestoringHealthCheckStartUtcTimestamp ?: string;
+        RestoringHealthCheckEndUtcTimestamp ?: string;
+    }
+
+    export interface IRawRepairTask {
+        TaskId: string;
+        Version?: string;
+        Description?: string;
+        State: string;
+        Flags?: number;
+        Action: string;
+        Target?: IRawNodeRepairTargetDescription; 
+        Executor?: string;
+        ExecutorData?: string;
+        Impact?: IRawNodeRepairImpactDescription; 
+        ResultStatus?: string;
+        ResultCode?: number;
+        ResultDetail?: string;
+        History?: IRawRepairTaskHistory;
+        PreparingHealthCheckState?: string;
+        RestoringHealthCheckState?: string;
+        PerformPreparingHealthCheck?: boolean;
+        PerformRestoringHealthCheck?: boolean;
+        scope?: any;
+        ResultDetails?: string;
+    }
+
 
     export interface INodesStatusDetails {
         nodeType: string;

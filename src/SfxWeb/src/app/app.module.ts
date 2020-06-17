@@ -13,13 +13,11 @@ import { initApp } from './app-initializers';
 import { AdalService } from './services/adal.service';
 import { httpInterceptorProviders } from './http-interceptor';
 import { HashLocationStrategy, LocationStrategy } from '@angular/common';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
-import { TelemetrySnackBarComponent } from './telemetry-snack-bar/telemetry-snack-bar.component';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
-    AppComponent,
-    TelemetrySnackBarComponent
+    AppComponent
   ],
   imports: [
     BrowserModule,
@@ -29,10 +27,8 @@ import { TelemetrySnackBarComponent } from './telemetry-snack-bar/telemetry-snac
     SharedModule,
     NoopAnimationsModule,
     MatDialogModule,
-    // BackupRestoreModule,
     NgbDropdownModule,
-    MatSnackBarModule
-    //test
+    ReactiveFormsModule
   ],
   
   providers: [
