@@ -59,7 +59,13 @@ export class ReplicaStatusComponent implements OnInit, OnChanges {
   }
 
   setCurrentStatus() {
-    this.leftBannerColor = "blue-border";
+    this.leftBannerColor = this.replicator.IsInBuild ? 'blue-border' : 'green-border';
+
+    if(!this.replicator.IsInBuild) {
+      this.overallStatus = 'Complete';
+      this.stepsFinished = 2;
+      return;
+    }
 
     if(this.isCopying) {
       this.overallStatus = 'Copying';
@@ -69,11 +75,7 @@ export class ReplicaStatusComponent implements OnInit, OnChanges {
       this.overallStatus = 'Replicating';
       this.estimatedTime = this.getEstimatedDuration(this.replicator.RemoteReplicatorAcknowledgementStatus.ReplicationStreamAcknowledgementDetail);
       this.stepsFinished = 1;
-    } else {
-      this.overallStatus = 'Complete';
-      this.leftBannerColor = "green-border";
-      this.stepsFinished = 2;
-    }
+    }     
   }
 
   getEstimatedDuration(details: IRemoteReplicatorAcknowledgementDetail) {

@@ -30,6 +30,7 @@ export class ReplicaStatusContainerComponent implements OnChanges, OnDestroy {
     })
     //wrap check given primary starts as null
     if(this.primaryReplica) {
+      console.log("test")
       this.sub.add(this.primaryReplica.detail.refresh().subscribe(()=> {
 
         this.queueSize = Utils.getFriendlyFileSize(+this.primaryReplica.detail.raw.ReplicatorStatus.ReplicationQueueStatus.QueueMemorySize);

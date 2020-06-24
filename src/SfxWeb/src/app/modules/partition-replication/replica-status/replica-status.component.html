@@ -18,7 +18,7 @@
     <app-collapse-container [collapsed]="!replicator.IsInBuild" [disabled]="!replicator.IsInBuild">
         <div collapse-header>
             <div [ngStyle]="{'margin-top' : replicator.IsInBuild ? '' : '7px'}">Build :
-                {{ (isCopying || isReplicating) ? ('In Progress (' + stepsFinished + '/2)' ): 'Done'}}
+                {{ stepsFinished < 2 ? ('In Progress (' + stepsFinished + '/2)' ): 'Done'}}
                 <span style="float: right; cursor: auto;" class="mif-info mif-lg"
                     title="Any time shown is only an estimate and is likely to change."
                     (click)="$event.stopPropagation()"></span>
