@@ -384,6 +384,7 @@ export class NodeTimelineGenerator extends TimeLineGeneratorBase<NodeEvent> {
 export class ApplicationTimelineGenerator extends TimeLineGeneratorBase<ApplicationEvent> {
     static readonly upgradeDomainLabel = 'Upgrade Domains';
     static readonly applicationUpgradeLabel = 'Application Upgrades';
+    static readonly applicationUpgradeLabelId = 'Application Upgrades(app)';
     static readonly applicationPrcoessExitedLabel = 'Application Process Exited';
 
     consume(events: ApplicationEvent[], startOfRange: Date, endOfRange: Date): ITimelineData {
@@ -403,7 +404,7 @@ export class ApplicationTimelineGenerator extends TimeLineGeneratorBase<Applicat
             }else if (event.kind === 'ApplicationUpgradeDomainCompleted') {
                 EventStoreUtils.parseUpgradeDomain(event, items, ApplicationTimelineGenerator.upgradeDomainLabel, 'ApplicationTypeVersion');
             }else if (event.kind === 'ApplicationUpgradeCompleted') {
-                EventStoreUtils.parseUpgradeCompleted(event, items, ApplicationTimelineGenerator.applicationUpgradeLabel, 'ApplicationTypeVersion');
+                EventStoreUtils.parseUpgradeCompleted(event, items, ApplicationTimelineGenerator.applicationUpgradeLabelId, 'ApplicationTypeVersion');
                 previousApplicationUpgrade = event;
             }else if (event.kind === 'ApplicationProcessExited') {
                 this.parseApplicationProcessExited(event, items, processExitedGroups);
@@ -431,7 +432,7 @@ export class ApplicationTimelineGenerator extends TimeLineGeneratorBase<Applicat
         }
 
         const groups = new DataSet<DataGroup>([
-            {id: ApplicationTimelineGenerator.upgradeDomainLabel, content: ApplicationTimelineGenerator.upgradeDomainLabel},
+            {id: ApplicationTimelineGenerator.applicationUpgradeLabelId, content: ApplicationTimelineGenerator.upgradeDomainLabel},
             {id: ApplicationTimelineGenerator.applicationUpgradeLabel, content: ApplicationTimelineGenerator.applicationUpgradeLabel},
         ]);
 

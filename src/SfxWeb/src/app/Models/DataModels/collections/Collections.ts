@@ -25,6 +25,7 @@ import { PartitionBackup, PartitionBackupInfo } from '../PartitionBackupInfo';
 import { DataModelCollectionBase, IDataModelCollection } from './CollectionBase';
 import groupBy from 'lodash/groupBy';
 import { RoutesService } from 'src/app/services/routes.service';
+import { ApplicationTimelineGenerator, ClusterTimelineGenerator, NodeTimelineGenerator, parseEventsGenerically, TimeLineGeneratorBase } from '../../eventstore/timelineGenerators';
 // -----------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation.  All rights reserved.
 // Licensed under the MIT License. See License file under the project root for license information.
@@ -325,6 +326,8 @@ export abstract class EventListBase<T extends FabricEventBase> extends DataModel
 
     protected readonly optionalColsStartIndex: number = 2;
 
+    protected timelineGenerator: TimeLineGeneratorBase<FabricEventBase>;
+
     private lastRefreshTime?: Date;
     private iStartDate: Date;
     private iEndDate: Date;
@@ -447,11 +450,25 @@ export abstract class EventListBase<T extends FabricEventBase> extends DataModel
 
         return false;
     }
+
+    public getTimelineEvents() {
+        console.log(this.collection)
+        if(this.timelineGenerator) {
+            return this.timelineGenerator.generateTimeLineData(this.collection.map(event => event.raw), this.startDate, this.endDate);
+        }else {
+            return this.parseEventsGenerically();
+        }
+    }
+
+    public parseEventsGenerically() {
+        return parseEventsGenerically(this.collection.map(event => event.raw), 'Category,Kind')
+    }
 }
 
 export class ClusterEventList extends EventListBase<ClusterEvent> {
     public constructor(data: DataService, partitionId?: string) {
         super(data);
+        this.timelineGenerator = new ClusterTimelineGenerator();
     }
 
     protected retrieveEvents(messageHandler?: IResponseMessageHandler): Observable<FabricEventInstanceModel<ClusterEvent>[]> {
@@ -460,6 +477,8 @@ export class ClusterEventList extends EventListBase<ClusterEvent> {
                 return result.map(event => new FabricEventInstanceModel<ClusterEvent>(this.data, event));
             }));
     }
+
+    
 }
 
 export class NodeEventList extends EventListBase<NodeEvent> {
@@ -477,6 +496,7 @@ export class NodeEventList extends EventListBase<NodeEvent> {
                     'raw.nodeName',
                     'Node Name'));
         }
+        this.timelineGenerator = new NodeTimelineGenerator();
     }
 
     protected retrieveEvents(messageHandler?: IResponseMessageHandler): Observable<FabricEventInstanceModel<NodeEvent>[]> {
@@ -505,6 +525,7 @@ export class ApplicationEventList extends EventListBase<ApplicationEvent> {
                     'raw.applicationId',
                     'Application Id'));
         }
+        this.timelineGenerator = new ApplicationTimelineGenerator();
     }
 
     protected retrieveEvents(messageHandler?: IResponseMessageHandler): Observable<FabricEventInstanceModel<ApplicationEvent>[]> {

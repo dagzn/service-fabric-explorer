@@ -1,12 +1,13 @@
 import { Component, OnInit, Input, OnDestroy } from '@angular/core';
-import { ITimelineData, TimeLineGeneratorBase, parseEventsGenerically } from 'src/app/Models/eventstore/timelineGenerators';
+import { ITimelineData, TimeLineGeneratorBase, parseEventsGenerically, NodeTimelineGenerator, ApplicationTimelineGenerator } from 'src/app/Models/eventstore/timelineGenerators';
 import { EventListBase } from 'src/app/Models/DataModels/collections/Collections';
 import { FabricEventBase } from 'src/app/Models/eventstore/Events';
 import { TimeUtils } from 'src/app/Utils/TimeUtils';
 import { IOnDateChange } from '../double-slider/double-slider.component';
-import { Subject, Subscription } from 'rxjs';
+import { forkJoin, Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { DataService } from 'src/app/services/data.service';
+import { DataGroup, DataItem, DataSet } from 'vis-timeline';
 
 export interface IQuickDates {
     display: string;
@@ -42,6 +43,9 @@ export class EventStoreComponent implements OnInit, OnDestroy {
 
   @Input() eventsList: EventListBase<any>;
   @Input() timelineGenerator: TimeLineGeneratorBase<FabricEventBase>;
+
+  eventsLists: EventListBase<FabricEventBase>[] = [];
+
   public startDateMin: Date;
   public endDateMin: Date;
   public startDateMax: Date;
@@ -58,6 +62,11 @@ export class EventStoreComponent implements OnInit, OnDestroy {
   public endDate: Date;
 
   ngOnInit() {
+    this.eventsLists = [
+        this.dataService.createNodeEventList(),
+        this.dataService.createApplicationEventList(),
+    ]
+
     this.pshowAllEvents = !this.timelineGenerator;
     this.resetSelectionProperties();
     this.setTimelineData();
@@ -102,45 +111,101 @@ export class EventStoreComponent implements OnInit, OnDestroy {
 
   private setNewDateWindow(): void {
       if (this.eventsList.setDateWindow(this.startDate, this.endDate)) {
+          this.eventsLists.forEach(eventHandler => {
+              eventHandler.setDateWindow(this.startDate, this.endDate);
+          })
           this.resetSelectionProperties();
           this.isResetEnabled = true;
-          this.eventsList.reload().subscribe( data => {
+        //   this.eventsList.reload().subscribe( data => {
               this.setTimelineData();
-          });
+        //   });
       } else {
           this.resetSelectionProperties();
       }
   }
 
-  public setTimelineData(): void {
-    this.eventsList.ensureInitialized().subscribe( () => {
-        try {
-            if (this.pshowAllEvents) {
-                const d = parseEventsGenerically(this.eventsList.collection.map(event => event.raw), this.transformText);
+  public async setTimelineData() {
 
-                this.timeLineEventsData = {
-                    groups: d.groups,
-                    items: d.items,
-                    start: this.startDate,
-                    end: this.endDate,
-                    potentiallyMissingEvents: d.potentiallyMissingEvents
-                };
+    const groups = new DataSet<DataGroup>();
+    const items = new DataSet<DataItem>();
 
-            }else if (this.timelineGenerator) {
-                const d = this.timelineGenerator.generateTimeLineData(this.eventsList.collection.map(event => event.raw), this.startDate, this.endDate);
+    await forkJoin(this.eventsLists.concat(this.eventsList).map(l => l.ensureInitialized())).toPromise();
 
-                this.timeLineEventsData = {
-                    groups: d.groups,
-                    items: d.items,
-                    start: this.startDate,
-                    end: this.endDate,
-                    potentiallyMissingEvents: d.potentiallyMissingEvents
-                };
-            }
-        }catch (e) {
-            console.error(e);
-        }
-    });
+    await forkJoin(this.eventsLists.concat(this.eventsList).map(l => l.reload())).toPromise();
+
+    this.eventsLists.concat(this.eventsList).forEach(list => {
+        const data: ITimelineData = list.getTimelineEvents();
+        console.log(list);
+        data.groups.forEach(item => {
+            groups.add(item)
+        })
+        data.items.forEach(item => {
+            items.add(item);
+        })
+        console.log(groups,items)
+    })
+
+    this.timeLineEventsData = {
+        groups,
+        items,
+        start: this.startDate,
+        end: this.endDate
+    }
+    // try {
+    //     if (this.pshowAllEvents) {
+    //         const d = parseEventsGenerically(this.eventsList.collection.map(event => event.raw), this.transformText);
+
+    //         this.timeLineEventsData = {
+    //             groups: d.groups,
+    //             items: d.items,
+    //             start: this.startDate,
+    //             end: this.endDate,
+    //             potentiallyMissingEvents: d.potentiallyMissingEvents
+    //         };
+
+    //     }else if (this.timelineGenerator) {
+    //         const d = this.timelineGenerator.generateTimeLineData(this.eventsList.collection.map(event => event.raw), this.startDate, this.endDate);
+
+    //         this.timeLineEventsData = {
+    //             groups: d.groups,
+    //             items: d.items,
+    //             start: this.startDate,
+    //             end: this.endDate,
+    //             potentiallyMissingEvents: d.potentiallyMissingEvents
+    //         };
+    //     }
+    // }catch (e) {
+    //     console.error(e);
+    // }
+
+    // this.eventsList.ensureInitialized().subscribe( () => {
+    //     try {
+    //         if (this.pshowAllEvents) {
+    //             const d = parseEventsGenerically(this.eventsList.collection.map(event => event.raw), this.transformText);
+
+    //             this.timeLineEventsData = {
+    //                 groups: d.groups,
+    //                 items: d.items,
+    //                 start: this.startDate,
+    //                 end: this.endDate,
+    //                 potentiallyMissingEvents: d.potentiallyMissingEvents
+    //             };
+
+    //         }else if (this.timelineGenerator) {
+    //             const d = this.timelineGenerator.generateTimeLineData(this.eventsList.collection.map(event => event.raw), this.startDate, this.endDate);
+
+    //             this.timeLineEventsData = {
+    //                 groups: d.groups,
+    //                 items: d.items,
+    //                 start: this.startDate,
+    //                 end: this.endDate,
+    //                 potentiallyMissingEvents: d.potentiallyMissingEvents
+    //             };
+    //         }
+    //     }catch (e) {
+    //         console.error(e);
+    //     }
+    // });
     }
 
     setNewDates(dates: IOnDateChange) {

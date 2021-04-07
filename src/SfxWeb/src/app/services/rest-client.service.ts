@@ -774,7 +774,7 @@ export class RestClientService {
               + '&endtimeutc=' + endTime.toISOString().substr(0, 19) + 'Z';
       }
 
-      const fullUrl = this.getApiUrl(apiUrl, RestClientService.apiVersion80, null, true);
+      const fullUrl = this.getApiUrl(apiUrl, RestClientService.apiVersion72, null, true);
       return this.get<IRawList<{}>>(fullUrl, null, messageHandler).pipe(map(response => {
           return new EventsResponseAdapter(eventType).getEvents(response);
         }));
