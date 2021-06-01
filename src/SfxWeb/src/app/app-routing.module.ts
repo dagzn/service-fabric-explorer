@@ -12,7 +12,7 @@ const routes: Routes = [
   { path: 'app', loadChildren: () => import(`./views/application/application.module`).then(m => m.ApplicationModule) },
   { path: 'apps', loadChildren: () => import(`./views/applications/applications.module`).then(m => m.ApplicationsModule) },
 
-
+  { path: 'combinedEvents', loadChildren: () => import(`./views/combined-events/combined-events.module`).then(m => m.CombinedEventsModule) },
   // node section
   // tslint:disable-next-line:max-line-length
   { path: 'node/:nodeName/deployedapp/:appId/deployedservice/:serviceId/activationid/:activationId/partition/:partitionId/replica/:replicaId', loadChildren: () => import(`./views/deployed-replica/deployed-replica.module`).then(m => m.DeployedReplicaModule) },
